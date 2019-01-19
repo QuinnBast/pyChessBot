@@ -7,6 +7,9 @@ class BotPlayer (Player):
         super(BotPlayer, self).__init__()
 
     def take_turn(self, board):
+        if board.is_game_over(claim_draw=True):
+            return
+
         possible_moves = board.legal_moves
 
         # enumerate possible moves

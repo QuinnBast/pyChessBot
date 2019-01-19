@@ -17,9 +17,19 @@ class Game:
         # Start a GUI instance which threads the game
         Gui(self)
 
-    def get_svg(self):
+    def get_svg(self, squareList):
         if len(self.board.move_stack) == 0:
-            svg = chess.svg.board(board=self.board)
+            svg = chess.svg.board(board=self.board, squares=squareList)
         else:
-            svg = chess.svg.board(board=self.board, lastmove=self.board.move_stack[-1])
+            svg = chess.svg.board(board=self.board, lastmove=self.board.move_stack[-1], squares=squareList)
         return svg
+
+    def get_moves_from_square(self, square):
+        square_moves = chess.SquareSet()
+        for move in self.board.legal_moves:
+            if move.from_square == square:
+                square_moves.add(move.to_square)
+        if len(square_moves.tolist()) == 0:
+            return None
+        else:
+            return square_moves

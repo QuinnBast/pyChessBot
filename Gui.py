@@ -53,7 +53,6 @@ class GameThread(QThread):
 
     svg = pyqtSignal(object)
     is_over = pyqtSignal(object)
-    on_click = pyqtSignal(object)
     do_turn = pyqtSignal(object)
     waiting = True
     waiting_player = True
@@ -66,24 +65,25 @@ class GameThread(QThread):
         self.board = game.board
         self.player1 = game.player1
         self.player2 = game.player2
+        self.squares = None
 
     def run(self):
         while not self.board.is_game_over(claim_draw=True):
-            self.svg.emit(self.game.get_svg())
+            self.svg.emit(self.game.get_svg(self.squares))
             # Refresh the screen 60 times per second
-            time.sleep(1/2)
+            time.sleep(1/3)
 
             if self.board.turn == self.player1.get_color():
                 if isinstance(self.player1, HumanPlayer):
                     self.waiting = True
-                    while self.waiting:
+                    if self.waiting:
                         QCoreApplication.processEvents()
                 else:
                     self.player1.take_turn(self.board)
             else:
                 if isinstance(self.player2, HumanPlayer):
                     self.waiting = True
-                    while self.waiting:
+                    if self.waiting:
                         QCoreApplication.processEvents()
                 else:
                     self.player2.take_turn(self.board)
@@ -109,14 +109,11 @@ class GameThread(QThread):
 
             if self.first_square is None:
                 self.first_square = clicked_square
-                # Parse user's mouse click and get square
-                print("" + str(event.x()) + " " + str(event.y()))
-                self.on_click.emit(event)
+
+                self.squares = self.game.get_moves_from_square(self.first_square)
             else:
                 self.second_square = clicked_square
-                # parse user's mouse click and get square
-                print("" + str(event.x()) + " " + str(event.y()))
-                self.on_click.emit(event)
+                self.squares = None
 
                 # player take turn.
                 if self.board.turn == self.player1.get_color():
