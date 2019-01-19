@@ -1,12 +1,10 @@
+from Player import Player
 import random
 
 
-class ChessBot:
-    def __init__(self, color):
-        self.color = color
-
-    def get_color(self):
-        return self.color
+class BotPlayer (Player):
+    def __init__(self):
+        super(BotPlayer, self).__init__()
 
     def take_turn(self, board):
         possible_moves = board.legal_moves
