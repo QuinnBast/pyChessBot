@@ -40,8 +40,9 @@ class Gui:
         app.exec_()
 
     def quit(self, data):
-        if data:
-            quit()
+        print("Checkmate")
+        #if data:
+            #quit()
 
     def on_data_ready(self, data):
         self.svgWidget.renderer().load(QByteArray(data))
@@ -89,6 +90,8 @@ class GameThread(QThread):
                     self.player2.take_turn(self.board)
 
         # Emit game over
+        QCoreApplication.processEvents()
+        self.svg.emit(self.game.get_svg(self.squares))
         self.is_over.emit(True)
 
     def click(self, event):
