@@ -16,7 +16,7 @@ class Stockfish (Player):
 
     def take_turn(self, board):
         self.engine.position(board)
-        async = self.engine.go(searchmoves=board.legal_moves, depth=20, mate=8,
+        async = self.engine.go(searchmoves=board.legal_moves, depth=1, mate=2,
                                infinite=False, async_callback=True)
 
         while not async.done():

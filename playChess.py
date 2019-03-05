@@ -4,5 +4,5 @@ from HumanPlayer import HumanPlayer
 from Stockfish import Stockfish
 
 # Create a new game with two bots and play the game
-game = Game(HumanPlayer(), Stockfish())
+game = Game(HumanPlayer(), BotPlayer())
 game.play()
