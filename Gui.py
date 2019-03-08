@@ -121,7 +121,7 @@ class GameThread(QThread):
                 # Determine if the move is a promotion
                 if self.board.turn == self.player1.get_color():
                     # Determine if the move is a promotion move
-                    if clicked_rank == 7:
+                    if clicked_rank == 7 and self.board.piece_at(self.first_square).piece_type == chess.PAWN:
                         promote_to = input("Promote pawn to (b, n, r, q): ")
                         if promote_to == 'b':
                             move = chess.Move(self.first_square, self.second_square, chess.BISHOP)
@@ -136,7 +136,7 @@ class GameThread(QThread):
 
                 elif self.board.turn == self.player2.get_color():
                     # Determine if the move is a promotion move
-                    if clicked_rank == 0:
+                    if clicked_rank == 0 and self.board.piece_at(self.first_square).piece_type == chess.PAWN:
                         promote_to = input("Promote pawn to (b, n, r, q): ")
                         if promote_to == 'b':
                             move = chess.Move(self.first_square, self.second_square, chess.BISHOP)

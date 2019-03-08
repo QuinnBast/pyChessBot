@@ -11,13 +11,19 @@ class BotPlayer (Player):
             if board.is_game_over(claim_draw=True):
                 return
             else:
-                print("=== Bot Move ===")
-                board.push(self.random_move(board))
+                # board.push(self.random_move(board))
                 # board.push(self.best_material_value(board))
 
-                #best_move = self.min_max_tree(2, board)
-                #print(best_move)
-                #board.push(best_move)
+                best_move = self.min_max(3, board)
+                print(best_move)
+                board.push(best_move)
+
+                print("Selected a move from " + str(self.searched_positions) + " possible moves.")
+                if self.color:
+                    print("White bot: " + str(best_move))
+                else:
+                    print("Black bot: " + str(best_move))
+                self.searched_positions = 0
 
     def random_move(self, board):
         possible_moves = board.legal_moves
@@ -33,7 +39,8 @@ class BotPlayer (Player):
             rand_move = 0
         else:
             rand_move = random.randint(0, length - 1)
-        print("Selected a move from " + str(len(moves)) + " possible moves.")
+
+        self.searched_positions = len(moves)
         return moves[rand_move]
 
     def best_material_value(self, board):
@@ -52,58 +59,68 @@ class BotPlayer (Player):
                 best_move = move
                 best_material_value = value
         # Determines the best move based on the current board's player.
-        print("Selected a move from " + str(len(possible_moves)) + " possible moves.")
+        self.searched_positions = len(possible_moves)
         return best_move
 
     def min_max_helper(self, depth, board):
+        # Base case, at max depth return the board and it's position.
         if depth == 0:
             self.searched_positions = self.searched_positions + 1
             # Return the board state and the board's material value
-            return board, self.get_material_value(board)
+            return self.get_material_value(board)
 
         possible_moves = board.legal_moves
 
         if board.turn == self.color:
             # We want to maximize the heuristic
-            best_board = None
             best_value = -9999
             for move in possible_moves:
                 # Generate a new board
                 board_copy = board.copy()
                 board_copy.push(move)
 
-                # Recursion
-                possible_board, possible_board_value = self.min_max_helper(depth - 1, board_copy)
+                # Recursion determines the net layer's min or max value of the next depth
+                # Or, if at the last depth, returns the next board state's values
+                best_value = max(best_value, self.min_max_helper(depth - 1, board_copy))
 
-                if possible_board_value > best_value:
-                    best_value = self.get_material_value(board_copy)
-                    best_board = board_copy
-
-            return best_board, best_value
+            # Return the board's max value at this layer.
+            return best_value
         else:
             # We want to minimize the heuristic (assume opponent will make the best move)
-            best_board = None
-            best_value = 9999
+            worst_value = 9999
 
             for move in possible_moves:
                 # Generate a new board
                 board_copy = board.copy()
                 board_copy.push(move)
 
-                # Recursion
-                possible_board, possible_board_value = self.min_max_helper(depth - 1, board_copy)
+                # Recursion to determine the next layer's max value.
+                worst_value = min(worst_value, self.min_max_helper(depth - 1, board_copy))
 
-                # Minimize our own position on an opponent's move
-                if possible_board_value < best_value:
-                    best_value = self.get_material_value(board_copy)
-                    best_board = board_copy
+            return worst_value
 
-            return best_board, best_value
+    def min_max_root(self, depth, board):
+        possible_moves = board.legal_moves
+        best_value = -9999
+        best_board = None
+        for move in possible_moves:
+            # Generate a new board
+            board_copy = board.copy()
+            board_copy.push(move)
 
-    def min_max_tree(self, depth, board):
-        move = self.min_max_helper(depth, board)[0].pop()
-        print("Selected a move from " + str(self.searched_positions) + " possible moves at a depth of " + str(depth))
-        self.searched_positions = 0
+            if best_board is None:
+                best_board = board_copy
+
+            value = self.min_max_helper(depth - 1, board_copy)
+
+            if value > best_value:
+                best_board = board_copy
+                best_value = value
+
+        return best_board
+
+    def min_max(self, depth, board):
+        move = self.min_max_root(depth, board).pop()
         return move
 
     def get_material_value(self, board):
@@ -126,5 +143,8 @@ class BotPlayer (Player):
             elif (symbol == 'k'):
                 piece_value = piece_value * 1000
             total_piece_value = total_piece_value + piece_value
+
+        if board.is_checkmate():
+            total_piece_value += - 1000
 
         return total_piece_value
