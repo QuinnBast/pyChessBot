@@ -12,11 +12,12 @@ class BotPlayer (Player):
                 return
             else:
                 print("=== Bot Move ===")
-                # board.push(self.random_move(board))
+                board.push(self.random_move(board))
                 # board.push(self.best_material_value(board))
-                best_move = self.min_max_tree(2, board)
-                print(best_move)
-                board.push(best_move)
+
+                #best_move = self.min_max_tree(2, board)
+                #print(best_move)
+                #board.push(best_move)
 
     def random_move(self, board):
         possible_moves = board.legal_moves

@@ -118,11 +118,42 @@ class GameThread(QThread):
                 self.second_square = clicked_square
                 self.squares = None
 
+                # Determine if the move is a promotion
+                if self.board.turn == self.player1.get_color():
+                    # Determine if the move is a promotion move
+                    if clicked_rank == 7:
+                        promote_to = input("Promote pawn to (b, n, r, q): ")
+                        if promote_to == 'b':
+                            move = chess.Move(self.first_square, self.second_square, chess.BISHOP)
+                        elif promote_to == 'n':
+                            move = chess.Move(self.first_square, self.second_square, chess.KNIGHT)
+                        elif promote_to == 'r':
+                            move = chess.Move(self.first_square, self.second_square, chess.ROOK)
+                        elif promote_to == 'q':
+                            move = chess.Move(self.first_square, self.second_square, chess.QUEEN)
+                    else:
+                        move = chess.Move(self.first_square, self.second_square)
+
+                elif self.board.turn == self.player2.get_color():
+                    # Determine if the move is a promotion move
+                    if clicked_rank == 0:
+                        promote_to = input("Promote pawn to (b, n, r, q): ")
+                        if promote_to == 'b':
+                            move = chess.Move(self.first_square, self.second_square, chess.BISHOP)
+                        elif promote_to == 'n':
+                            move = chess.Move(self.first_square, self.second_square, chess.KNIGHT)
+                        elif promote_to == 'r':
+                            move = chess.Move(self.first_square, self.second_square, chess.ROOK)
+                        elif promote_to == 'q':
+                            move = chess.Move(self.first_square, self.second_square, chess.QUEEN)
+                    else:
+                        move = chess.Move(self.first_square, self.second_square)
+
                 # player take turn.
                 if self.board.turn == self.player1.get_color():
-                    self.player1.take_two_step_turn(self.board, self.first_square, self.second_square)
+                    self.player1.take_two_step_turn(self.board, move)
                 else:
-                    self.player2.take_two_step_turn(self.board, self.first_square, self.second_square)
+                    self.player2.take_two_step_turn(self.board, move)
 
                 self.waiting = False
                 self.first_square = None

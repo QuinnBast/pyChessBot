@@ -16,11 +16,13 @@ class HumanPlayer (Player):
         except Exception as e:
             print("Illegal move.")
 
-    def take_two_step_turn(self, board, first_square, second_square):
+    def take_two_step_turn(self, board, move):
         try:
-            move = chess.Move(first_square, second_square)
             if move in board.legal_moves:
                 board.push(move)
-                print("===Your Move===")
+                if self.color :
+                    print("White player: " + str(move))
+                else :
+                    print("Black player: " + str(move))
         except Exception as e:
             print("Illegal move.")
