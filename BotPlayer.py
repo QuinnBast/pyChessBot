@@ -2,19 +2,24 @@ from Player import Player
 import random
 
 class BotPlayer (Player):
-    def __init__(self):
+    def __init__(self, difficulty):
         super(BotPlayer, self).__init__()
         self.searched_positions = 0
+        self.difficulty = difficulty
 
     def take_turn(self, board):
         if board.turn == self.color:
             if board.is_game_over(claim_draw=True):
                 return
             else:
-                # best_move = self.random_move(board)
-                # best_move = self.best_material_value(board)
-                # best_move = self.min_max(3, board)
-                best_move = self.alpha_beta(3, board)
+                if self.difficulty == "rand":
+                    best_move = self.random_move(board)
+                elif self.difficulty == "material":
+                    best_move = self.best_material_value(board)
+                elif self.difficulty == "minimax":
+                    best_move = self.min_max(3, board)
+                elif self.difficulty == "alphabeta":
+                    best_move = self.alpha_beta(3, board)
 
                 print(best_move)
                 board.push(best_move)
@@ -201,17 +206,18 @@ class BotPlayer (Player):
         total_piece_value = 0
 
         for p in pieces:
+            # Your color = positive, enemey = negative
             piece_value = 1 if pieces[p].color != board.turn else -1
             symbol = pieces[p].symbol().lower()
-            if (symbol == 'p'):
+            if (symbol == 'p'): # Pawn value
                 piece_value = piece_value * 10
-            elif (symbol == 'b' or symbol == 'n'):
+            elif (symbol == 'b' or symbol == 'n'): # Bishop and Knight
                 piece_value = piece_value * 30
-            elif (symbol == 'r'):
+            elif (symbol == 'r'): # Rook
                 piece_value = piece_value * 50
-            elif (symbol == 'q'):
+            elif (symbol == 'q'): # Queen
                 piece_value = piece_value * 90
-            elif (symbol == 'k'):
+            elif (symbol == 'k'): # King
                 piece_value = piece_value * 1000
             total_piece_value = total_piece_value + piece_value
 

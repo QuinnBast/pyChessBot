@@ -7,8 +7,8 @@ from HumanPlayer import HumanPlayer
 import chess
 import math
 
-WIDTH = 1024
-HEIGHT = 1024
+WIDTH = 480
+HEIGHT = 480
 
 class ClickFilter (QObject):
     clicked = pyqtSignal(object)
@@ -22,6 +22,7 @@ class ClickFilter (QObject):
 class Gui:
 
     app = QtGui.QApplication(sys.argv)
+    window = QtGui.QMainWindow()
     svgWidget = QtSvg.QSvgWidget()
 
     def __init__(self, game):
@@ -37,6 +38,67 @@ class Gui:
 
         self.svgWidget.installEventFilter(filter)
 
+        # Create main menu
+        mainMenu = self.window.menuBar()
+        mainMenu.setNativeMenuBar(False)
+        fileMenu = mainMenu.addMenu('File')
+        p1Menu = mainMenu.addMenu('Player 1')
+        p2Menu = mainMenu.addMenu('Player 2')
+
+        # Add exit button
+        newGameButton = QtGui.QAction('New Game', self.window)
+        newGameButton.setShortcut('Ctrl+N')
+        newGameButton.setStatusTip('New Game')
+        newGameButton.triggered.connect(game.newgame)
+        fileMenu.addAction(newGameButton)
+
+        p1HumanButton = QtGui.QAction('Human Player', self.window)
+        p1HumanButton.triggered.connect(lambda: game.setPlayer(1, "Human") and game.newgame())
+        p1Menu.addAction(p1HumanButton)
+
+        p1BotRandButton = QtGui.QAction('Beginner (Random Bot)', self.window)
+        p1BotRandButton.triggered.connect(lambda: game.setPlayer(1, "BotRand") and game.newgame())
+        p1Menu.addAction(p1BotRandButton)
+
+        p1BotMaterialButton = QtGui.QAction('Easy (Material Value Bot)', self.window)
+        p1BotMaterialButton.triggered.connect(lambda: game.setPlayer(1, "BotMaterial") and game.newgame())
+        p1Menu.addAction(p1BotMaterialButton)
+
+        p1BotMiniMaxButton = QtGui.QAction('Medium (MiniMax Bot)', self.window)
+        p1BotMiniMaxButton.triggered.connect(lambda: game.setPlayer(1, "BotMinimax") and game.newgame())
+        p1Menu.addAction(p1BotMiniMaxButton)
+
+        p1BotAlphaBetaButton = QtGui.QAction('Hard (AlphaBeta Bot)', self.window)
+        p1BotAlphaBetaButton.triggered.connect(lambda: game.setPlayer(1, "BotAlphaBeta") and game.newgame())
+        p1Menu.addAction(p1BotAlphaBetaButton)
+
+
+
+        p2HumanButton = QtGui.QAction('Human Player', self.window)
+        p2HumanButton.triggered.connect(lambda: game.setPlayer(2, "Human") and game.newgame())
+        p2Menu.addAction(p2HumanButton)
+
+        p2BotRandButton = QtGui.QAction('Beginner (Random Bot)', self.window)
+        p2BotRandButton.triggered.connect(lambda: game.setPlayer(2, "BotRand") and game.newgame())
+        p2Menu.addAction(p2BotRandButton)
+
+        p2BotMaterialButton = QtGui.QAction('Easy (Material Value Bot)', self.window)
+        p2BotMaterialButton.triggered.connect(lambda: game.setPlayer(2, "BotMaterial") and game.newgame())
+        p2Menu.addAction(p2BotMaterialButton)
+
+        p2BotMiniMaxButton = QtGui.QAction('Medium (MiniMax Bot)', self.window)
+        p2BotMiniMaxButton.triggered.connect(lambda: game.setPlayer(2, "BotMinimax") and game.newgame())
+        p2Menu.addAction(p2BotMiniMaxButton)
+
+        p2BotAlphaBetaButton = QtGui.QAction('Hard (AlphaBeta Bot)', self.window)
+        p2BotAlphaBetaButton.triggered.connect(lambda: game.setPlayer(2, "BotAlphaBeta") and game.newgame())
+        p2Menu.addAction(p2BotAlphaBetaButton)
+
+
+
+        self.window.show()
+        self.window.setCentralWidget(self.svgWidget)
+
         app.exec_()
 
     def quit(self, data):
@@ -47,7 +109,7 @@ class Gui:
     def on_data_ready(self, data):
         self.svgWidget.renderer().load(QByteArray(data))
         self.svgWidget.setFixedSize(WIDTH, HEIGHT)
-        self.svgWidget.show()
+        #self.svgWidget.show()
 
 
 class GameThread(QThread):
@@ -63,36 +125,44 @@ class GameThread(QThread):
     def __init__(self, game):
         super(GameThread, self).__init__()
         self.game = game
-        self.board = game.board
-        self.player1 = game.player1
-        self.player2 = game.player2
         self.squares = None
+        self.gameOver = False
 
     def run(self):
-        while not self.board.is_game_over(claim_draw=True):
-            self.svg.emit(self.game.get_svg(self.squares))
-            # Refresh the screen 60 times per second
-            time.sleep(1/3)
+        while True:
+            if not self.game.get_game().is_game_over(claim_draw=True):
+                self.gameOver = False
+                self.svg.emit(self.game.get_svg(self.squares))
+                # Refresh the screen 60 times per second
+                time.sleep(1/3)
 
-            if self.board.turn == self.player1.get_color():
-                if isinstance(self.player1, HumanPlayer):
-                    self.waiting = True
-                    if self.waiting:
-                        QCoreApplication.processEvents()
+                board = self.game.get_game()
+                player1 = self.game.get_player1()
+                player2 = self.game.get_player2()
+
+                if board.turn == player1.get_color():
+                    if isinstance(player1, HumanPlayer):
+                        self.waiting = True
+                        if self.waiting:
+                            QCoreApplication.processEvents()
+                    else:
+                        player1.take_turn(board)
                 else:
-                    self.player1.take_turn(self.board)
+                    if isinstance(player2, HumanPlayer):
+                        self.waiting = True
+                        if self.waiting:
+                            QCoreApplication.processEvents()
+                    else:
+                        player2.take_turn(board)
             else:
-                if isinstance(self.player2, HumanPlayer):
-                    self.waiting = True
-                    if self.waiting:
-                        QCoreApplication.processEvents()
-                else:
-                    self.player2.take_turn(self.board)
+                if self.gameOver == False:
+                    print("Game over")
+                    self.gameOver = True
 
-        # Emit game over
-        QCoreApplication.processEvents()
-        self.svg.emit(self.game.get_svg(self.squares))
-        self.is_over.emit(True)
+        # # Emit game over
+        # QCoreApplication.processEvents()
+        # self.svg.emit(self.game.get_svg(self.squares))
+        # self.is_over.emit(True)
 
     def click(self, event):
         # If the game is waiting for the user's turn, process their mouse click.
@@ -118,10 +188,14 @@ class GameThread(QThread):
                 self.second_square = clicked_square
                 self.squares = None
 
+                board = self.game.get_game()
+                player1 = self.game.get_player1()
+                player2 = self.game.get_player2()
+
                 # Determine if the move is a promotion
-                if self.board.turn == self.player1.get_color():
+                if board.turn == player1.get_color():
                     # Determine if the move is a promotion move
-                    if clicked_rank == 7 and self.board.piece_at(self.first_square).piece_type == chess.PAWN:
+                    if clicked_rank == 7 and board.piece_at(self.first_square).piece_type == chess.PAWN:
                         promote_to = input("Promote pawn to (b, n, r, q): ")
                         if promote_to == 'b':
                             move = chess.Move(self.first_square, self.second_square, chess.BISHOP)
@@ -134,9 +208,9 @@ class GameThread(QThread):
                     else:
                         move = chess.Move(self.first_square, self.second_square)
 
-                elif self.board.turn == self.player2.get_color():
+                elif board.turn == player2.get_color():
                     # Determine if the move is a promotion move
-                    if clicked_rank == 0 and self.board.piece_at(self.first_square).piece_type == chess.PAWN:
+                    if clicked_rank == 0 and board.piece_at(self.first_square).piece_type == chess.PAWN:
                         promote_to = input("Promote pawn to (b, n, r, q): ")
                         if promote_to == 'b':
                             move = chess.Move(self.first_square, self.second_square, chess.BISHOP)
@@ -150,10 +224,10 @@ class GameThread(QThread):
                         move = chess.Move(self.first_square, self.second_square)
 
                 # player take turn.
-                if self.board.turn == self.player1.get_color():
-                    self.player1.take_two_step_turn(self.board, move)
+                if board.turn == player1.get_color():
+                    player1.take_two_step_turn(board, move)
                 else:
-                    self.player2.take_two_step_turn(self.board, move)
+                    player2.take_two_step_turn(board, move)
 
                 self.waiting = False
                 self.first_square = None
